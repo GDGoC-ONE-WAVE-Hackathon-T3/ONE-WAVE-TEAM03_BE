@@ -1,0 +1,118 @@
+name: Deploy To EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Github Repository 파일 불러오기
+        uses: actions/checkout@v4
+
+      - name: pnpm 설치
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9 # 버전은 프로젝트에 맞춰 조정
+
+      - name: Node 설치
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: 'pnpm'
+
+      - name: 의존성 설치
+        run: pnpm install --frozen-lockfile
+
+      # 테스트용 .env 생성 (로컬 환경 변수 필요 시)
+      - name: 테스트용 .env 생성
+        run: |
+          touch .env
+          echo '${{ secrets.ENV }}' >> .env
+
+      - name: 테스트 코드 실행
+        run: pnpm run test
+
+      - name: AWS 권한 설정
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ap-northeast-2
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: ECR 로그인
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Docker 이미지 생성 (Prod 타겟 지정)
+        # [수정 1] --target prod 옵션 추가: 배포용 가벼운 이미지만 빌드
+        run: docker build --target prod -t one-wave-server .
+
+      - name: Docker 이미지 Tag 및 Push
+        run: |
+          docker tag one-wave-server ${{ steps.login-ecr.outputs.registry }}/one-wave-server:latest
+          docker push ${{ steps.login-ecr.outputs.registry }}/one-wave-server:latest
+
+      - name: SSH로 EC2에 배포
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          ENV_CONTENT: ${{ secrets.ENV }}
+          # [수정 2] ECR 로그인 정보를 EC로 넘기기 위한 환경변수 설정
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_USERNAME: ${{ steps.login-ecr.outputs.username }}
+          ECR_PASSWORD: ${{ steps.login-ecr.outputs.password }}
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_PRIVATE_KEY }}
+          port: 22
+          # envs에 위에서 설정한 변수들을 등록해야 script에서 쓸 수 있음
+          envs: ENV_CONTENT, ECR_REGISTRY, ECR_USERNAME, ECR_PASSWORD
+          script_stop: true
+          script: |
+            # 1. EC2 내부에서 ECR 로그인 (이게 없으면 pull 실패함)
+            echo $ECR_PASSWORD | docker login --username $ECR_USERNAME --password-stdin $ECR_REGISTRY
+            
+            # 2. .env 파일 갱신
+            echo "$ENV_CONTENT" > .env
+            
+            # 3. 기존 컨테이너 정리
+            docker stop one-wave-server || true
+            docker rm one-wave-server || true
+            
+            # 4. 최신 이미지 받기
+            docker pull $ECR_REGISTRY/one-wave-server:latest
+            
+            # 5. 컨테이너 실행 (환경변수 파일 연결)
+            # --network host를 쓰지 않으므로 포트 포워딩(-p) 필수
+            docker run -d --name one-wave-server -p 3000:3000 --env-file .env $ECR_REGISTRY/one-wave-server:latest
+            
+            # 6. 불필요한 이미지 정리 (디스크 공간 확보)
+            docker image prune -f
+      - name: 디스코드 알림 전송 (성공 시)
+        if: success() # 위 단계들이 모두 성공했을 때만 실행
+        uses: sarisia/actions-status-discord@v1
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          title: "🚀 배포 성공! (One Wave)"
+          description: |
+            **버전:** ${{ github.sha }}
+            **배포자:** ${{ github.actor }}
+            서버가 성공적으로 업데이트되었습니다.
+          color: 0x00FF00 # 초록색
+          url: "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+      - name: 디스코드 알림 전송 (실패 시)
+        if: failure() # 하나라도 실패했을 때 실행
+        uses: sarisia/actions-status-discord@v1
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          title: "🚨 배포 실패 (One Wave)"
+          description: |
+            **배포자:** ${{ github.actor }}
+            에러가 발생했습니다. 로그를 확인해주세요.
+          color: 0xFF0000 # 빨간색
+          url: "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            
