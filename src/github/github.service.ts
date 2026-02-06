@@ -138,7 +138,7 @@ export class GithubService implements OnModuleInit {
             throw error;
         }
     }
-    async mockForkRepo(): Promise<string> {
+    async mockForkRepo(): Promise<{ forkUrl: string; botInstallUrl: string }> {
         const token = this.configService.get<string>('DEMO_GITHUB_TOKEN');
         const octokit = new Octokit({ auth: token }); // 유저의 토큰으로 인스턴스 생성
 
@@ -150,8 +150,10 @@ export class GithubService implements OnModuleInit {
             });
 
             // 포크된 레포지토리의 URL 반환
-            return response.data.html_url;
-
+            return {
+                forkUrl: 'https://github.com/labyrinth30/elasticsearch',
+                botInstallUrl: 'https://github.com/apps/one-wave-team3-bot'
+            }
         } catch (error) {
             // 이미 포크된 경우에도 GitHub는 에러 대신 기존 레포 정보를 줄 때가 있지만,
             // 명시적으로 에러가 나면 처리해줍니다.
