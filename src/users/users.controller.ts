@@ -1,17 +1,27 @@
-import { Controller, Get, Post, Body, Param } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { UsersService } from './services/users.service';
-import { CreateUserDto } from './dto/request/create-user.dto';
-import { UserResponseDto } from './dto/response/user.response.dto';
+import { Controller, Get, Post } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiProperty } from '@nestjs/swagger';
+import { UsersService } from './services/users.service'; \
 import { GithubService } from '../github/github.service';
 
 
 class OnboardingResponseDto {
+    @ApiProperty({
+        example: 'https://github.com/labyrinth30/elasticsearch',
+        description: 'Fork URL',
+    })
     forkUrl: string;
+    @ApiProperty({
+        example: 'https://github.com/apps/one-wave-team3-bot',
+        description: 'Bot Install URL',
+    })
     botInstallUrl: string
 };
 
 class MissionStatusResponseDto {
+    @ApiProperty({
+        example: true,
+        description: 'PR Merged Status',
+    })
     isMerged: boolean;
     prUrl?: string
 };
