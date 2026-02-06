@@ -3,19 +3,29 @@ import {
     Post,
     UploadedFile,
     UseInterceptors,
+    Get,
+    Logger,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiConsumes, ApiOperation, ApiTags, ApiResponse } from '@nestjs/swagger';
 import { FilesService } from '../services/files.service';
+import { FileUploadResponseDto } from '../dto/response/file-upload.response.dto';
 
-@ApiTags('Files')
+@ApiTags('Keys')
 @Controller('files')
 export class FilesController {
+    private readonly logger = new Logger(FilesController.name);
+
     constructor(private readonly filesService: FilesService) { }
 
     @Post('upload')
     @ApiOperation({ summary: 'S3에 파일 업로드' })
     @ApiConsumes('multipart/form-data')
+    @ApiResponse({
+        status: 201,
+        description: 'File Uploaded Successfully',
+        type: FileUploadResponseDto,
+    })
     @ApiBody({
         schema: {
             type: 'object',
@@ -27,14 +37,19 @@ export class FilesController {
             },
         },
     })
-    @UseInterceptors(FileInterceptor('file')) // Storage strategy injected via Module? No, need to pass options here or register globally/locally.
-    // NestJS FileInterceptor doesn't take the service instance directly easily. 
-    // We need to register the MulterModule.registerAsync in the module.
-    uploadFile(@UploadedFile() file: Express.MulterS3.File) {
-        // If registered correctly, file will be uploaded to S3 and info available here
-        return {
+    @UseInterceptors(FileInterceptor('file'))
+    uploadFile(@UploadedFile() file: Express.MulterS3.File): FileUploadResponseDto {
+        return new FileUploadResponseDto({
             url: file.location,
             key: file.key,
-        };
+        });
+    }
+
+    // Smoke Test Endpoint
+    @ApiOperation({ summary: 'Smoke Test' })
+    @ApiResponse({ status: 200, description: 'OK' })
+    @Get('admin/test')
+    async smokeTest(): Promise<string> {
+        return 'OK';
     }
 }

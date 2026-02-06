@@ -3,6 +3,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './users/users.module';
 import { FilesModule } from './files/files.module';
+import { WebhookModule } from './webhook/webhook.module';
+import { CodeReviewModule } from './review/code-review.module';
 
 @Module({
   imports: [
@@ -23,12 +25,14 @@ import { FilesModule } from './files/files.module';
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
         synchronize: true, // Dev only
         logging: true,
-        ssl: {
-          rejectUnauthorized: false,
-        },
+        // ssl: {
+        //   rejectUnauthorized: false,
+        // },
       }),
     }),
     UsersModule,
+    WebhookModule,
+    CodeReviewModule,
   ],
 })
 export class AppModule { }
