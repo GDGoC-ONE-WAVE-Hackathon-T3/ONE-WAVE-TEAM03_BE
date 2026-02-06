@@ -5,6 +5,7 @@ import { UsersModule } from './users/users.module';
 import { FilesModule } from './files/files.module';
 import { WebhookModule } from './webhook/webhook.module';
 import { CodeReviewModule } from './review/code-review.module';
+import { MockModule } from './mock/mock.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { CodeReviewModule } from './review/code-review.module';
     UsersModule,
     WebhookModule,
     CodeReviewModule,
+    MockModule,
   ],
 })
 export class AppModule { }
