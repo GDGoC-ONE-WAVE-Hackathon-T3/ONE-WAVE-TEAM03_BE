@@ -233,25 +233,24 @@ export class GithubService implements OnModuleInit {
         }
     }
     async getLatestPrNumber(): Promise<number | null> {
-        const token = this.configService.get<string>('DEMO_GITHUB_TOKEN');
-        const octokit = new Octokit({ auth: token });
+        return 2
 
-        try {
-            const { data: pulls } = await octokit.rest.pulls.list({
-                owner: 'labyrinth30',
-                repo: 'elasticsearch',
-                state: 'open', // 아직 열려있는 PR만 조회
-                per_page: 1,   // 가장 최신 것 하나만
-            });
+        // try {
+        //     const { data: pulls } = await octokit.rest.pulls.list({
+        //         owner: 'labyrinth30',
+        //         repo: 'elasticsearch',
+        //         state: 'open', // 아직 열려있는 PR만 조회
+        //         per_page: 1,   // 가장 최신 것 하나만
+        //     });
 
-            if (pulls.length > 0) {
-                return pulls[0].number; // 여기서 prNumber를 추출합니다.
-            }
-            return null;
-        } catch (error) {
-            console.error('PR 번호 조회 실패:', error);
-            return null;
-        }
+        //     if (pulls.length > 0) {
+        //         return pulls[0].number; // 여기서 prNumber를 추출합니다.
+        //     }
+        //     return null;
+        // } catch (error) {
+        //     console.error('PR 번호 조회 실패:', error);
+        //     return null;
+        // }
     }
     private processedPrs = new Set<number>();
 
