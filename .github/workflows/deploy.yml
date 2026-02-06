@@ -60,7 +60,7 @@ jobs:
           ECR_PASSWORD: ${{ steps.login-ecr.outputs.password }}
         with:
           host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
+          username: ubuntu
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           port: 22
           # envs에 위에서 설정한 변수들을 등록해야 script에서 쓸 수 있음
