@@ -72,6 +72,7 @@ jobs:
           envs: ENV_CONTENT,ECR_REGISTRY,ECR_USERNAME,ECR_PASSWORD
           script_stop: true
           script: |
+            export DOCKER_CONFIG=$(mktemp -d)
             echo "$ECR_PASSWORD" | docker login --username "$ECR_USERNAME" --password-stdin "$ECR_REGISTRY"
             
             echo "$ENV_CONTENT" > .env
