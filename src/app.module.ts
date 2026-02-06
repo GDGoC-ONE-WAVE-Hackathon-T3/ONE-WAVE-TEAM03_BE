@@ -26,9 +26,9 @@ import { MockModule } from './mock/mock.module';
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
         synchronize: true, // Dev only
         logging: true,
-        // ssl: {
-        //   rejectUnauthorized: false,
-        // },
+        ssl: {
+          rejectUnauthorized: false,
+        },
       }),
     }),
     UsersModule,
