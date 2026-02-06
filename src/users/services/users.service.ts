@@ -1,24 +1,14 @@
-import { Injectable, HttpStatus, NotFoundException } from '@nestjs/common';
+import { Injectable, HttpStatus } from '@nestjs/common';
 import { User } from '../entities/user.entity';
 import { CreateUserDto } from '../dto/request/create-user.dto';
 import { BaseException } from '../../common/exception/base.exception';
 import { ERROR_CODES } from '../../common/constants/error-codes';
 import { UsersRepository } from '../users.repository';
-import { Mission } from '../../entities/mission.entity';
-import { Repository } from 'typeorm';
-import { InjectRepository } from '@nestjs/typeorm';
-import { OnboardingDto } from '../dto/request/onboarding.dto';
-import { GithubService } from '../../github/github.service';
-import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class UsersService {
     constructor(
         private readonly userRepository: UsersRepository,
-        @InjectRepository(Mission)
-        private readonly missionRepository: Repository<Mission>,
-        private readonly githubService: GithubService,
-        private readonly configService: ConfigService,
     ) { }
 
     async create(params: { createUserDto: CreateUserDto }): Promise<{ user: User }> {

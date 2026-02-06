@@ -1,8 +1,7 @@
 import { Controller, Get, Post } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiProperty } from '@nestjs/swagger';
-import { UsersService } from './services/users.service'; \
+import { UsersService } from './services/users.service';
 import { GithubService } from '../github/github.service';
-
 
 class OnboardingResponseDto {
     @ApiProperty({
