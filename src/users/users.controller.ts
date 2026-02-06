@@ -9,6 +9,11 @@ class OnboardingResponseDto {
     forkUrl: string;
     botInstallUrl: string
 };
+
+class MissionStatusResponseDto {
+    isMerged: boolean;
+    prUrl?: string
+};
 @ApiTags('Users')
 @Controller('users')
 export class UsersController {
@@ -49,6 +54,7 @@ export class UsersController {
 
     @Get('mission-status')
     @ApiOperation({ summary: '미션 완료(PR 머지) 상태 확인' })
+    @ApiResponse({ status: 200, type: MissionStatusResponseDto })
     async checkMissionStatus() {
         // 실제 구현에서는 유저별 미션 정보를 조회해야 하지만, 
         // 시연을 위해 무조건 해당 레포의 PR 상태를 반환합니다.
