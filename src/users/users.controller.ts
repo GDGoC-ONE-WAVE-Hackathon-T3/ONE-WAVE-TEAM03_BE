@@ -47,7 +47,7 @@ export class UsersController {
         return new UserResponseDto(user);
     }
 
-    @Get(':id/mission-status')
+    @Get('mission-status')
     @ApiOperation({ summary: '미션 완료(PR 머지) 상태 확인' })
     async checkMissionStatus() {
         // 실제 구현에서는 유저별 미션 정보를 조회해야 하지만, 
