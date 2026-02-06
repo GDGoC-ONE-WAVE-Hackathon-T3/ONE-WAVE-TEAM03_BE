@@ -3,7 +3,7 @@ import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { UsersService } from './services/users.service';
 import { CreateUserDto } from './dto/request/create-user.dto';
 import { UserResponseDto } from './dto/response/user.response.dto';
-
+import { GithubService } from '../github/github.service';
 
 class OnboardingResponseDto {
     forkUrl: string;
@@ -12,7 +12,9 @@ class OnboardingResponseDto {
 @ApiTags('Users')
 @Controller('users')
 export class UsersController {
-    constructor(private readonly usersService: UsersService) { }
+    constructor(private readonly usersService: UsersService,
+        private readonly githubService: GithubService
+    ) { }
 
     @Get('admin/test')
     @ApiOperation({ summary: 'Health Check API' })
@@ -45,6 +47,13 @@ export class UsersController {
         return new UserResponseDto(user);
     }
 
+    @Get(':id/mission-status')
+    @ApiOperation({ summary: '미션 완료(PR 머지) 상태 확인' })
+    async checkMissionStatus(@Param('id') id: string) {
+        // 실제 구현에서는 유저별 미션 정보를 조회해야 하지만, 
+        // 시연을 위해 무조건 해당 레포의 PR 상태를 반환합니다.
+        return this.githubService.getLatestPrStatus();
+    }
 
     @Post('onboarding')
     @ApiOperation({ summary: '온보딩' })

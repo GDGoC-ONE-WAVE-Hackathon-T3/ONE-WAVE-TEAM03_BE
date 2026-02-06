@@ -161,4 +161,33 @@ export class GithubService implements OnModuleInit {
             throw new Error('GitHub Fork Failed');
         }
     }
+    async getLatestPrStatus(): Promise<{ isMerged: boolean; prUrl?: string }> {
+        const token = this.configService.get<string>('DEMO_GITHUB_TOKEN');
+        const octokit = new Octokit({ auth: token });
+
+        try {
+            // 1. labyrinth30/elasticsearch 레포의 PR 목록을 가져옵니다.
+            const { data: pulls } = await octokit.rest.pulls.list({
+                owner: 'labyrinth30',
+                repo: 'elasticsearch',
+                state: 'all', // open, closed 모두 포함
+                per_page: 1,  // 가장 최신 것 하나만 확인
+            });
+
+            if (pulls.length === 0) {
+                return { isMerged: false };
+            }
+
+            const latestPr = pulls[0];
+
+            // 2. merged_at 값이 있으면 머지된 것입니다.
+            return {
+                isMerged: !!latestPr.merged_at,
+                prUrl: latestPr.html_url
+            };
+        } catch (error) {
+            console.error('PR Status Check Error:', error);
+            return { isMerged: false };
+        }
+    }
 }
