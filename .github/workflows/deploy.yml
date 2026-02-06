@@ -55,7 +55,6 @@ jobs:
         uses: appleboy/ssh-action@v1.0.3
         env:
           ENV_CONTENT: ${{ secrets.ENV }}
-          # [수정 2] ECR 로그인 정보를 EC로 넘기기 위한 환경변수 설정
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_USERNAME: ${{ steps.login-ecr.outputs.username }}
           ECR_PASSWORD: ${{ steps.login-ecr.outputs.password }}
@@ -65,27 +64,20 @@ jobs:
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           port: 22
           # envs에 위에서 설정한 변수들을 등록해야 script에서 쓸 수 있음
-          envs: ENV_CONTENT, ECR_REGISTRY, ECR_USERNAME, ECR_PASSWORD
+          envs: ENV_CONTENT,ECR_REGISTRY,ECR_USERNAME,ECR_PASSWORD
           script_stop: true
           script: |
-            # 1. EC2 내부에서 ECR 로그인 (이게 없으면 pull 실패함)
-            echo $ECR_PASSWORD | docker login --username $ECR_USERNAME --password-stdin $ECR_REGISTRY
+            echo "$ECR_PASSWORD" | docker login --username "$ECR_USERNAME" --password-stdin "$ECR_REGISTRY"
             
-            # 2. .env 파일 갱신
             echo "$ENV_CONTENT" > .env
             
-            # 3. 기존 컨테이너 정리
             docker stop one-wave-server || true
             docker rm one-wave-server || true
             
-            # 4. 최신 이미지 받기
-            docker pull $ECR_REGISTRY/one-wave-server:latest
+            docker pull "$ECR_REGISTRY/one-wave-server:latest"
             
-            # 5. 컨테이너 실행 (환경변수 파일 연결)
-            # --network host를 쓰지 않으므로 포트 포워딩(-p) 필수
-            docker run -d --name one-wave-server -p 3000:3000 --env-file .env $ECR_REGISTRY/one-wave-server:latest
+            docker run -d --name one-wave-server -p 3000:3000 --env-file .env "$ECR_REGISTRY/one-wave-server:latest"
             
-            # 6. 불필요한 이미지 정리 (디스크 공간 확보)
             docker image prune -f
       - name: 디스코드 알림 전송 (성공 시)
         if: success() # 위 단계들이 모두 성공했을 때만 실행
