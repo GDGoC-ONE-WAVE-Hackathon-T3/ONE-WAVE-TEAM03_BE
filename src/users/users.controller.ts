@@ -3,6 +3,13 @@ import { ApiTags, ApiOperation, ApiResponse, ApiProperty } from '@nestjs/swagger
 import { UsersService } from './services/users.service';
 import { GithubService } from '../github/github.service';
 
+export class PrDiffResponseDto {
+    @ApiProperty({
+        description: 'GitHub PR의 Raw Diff 문자열',
+        example: 'diff --git a/src/main.ts b/src/main.ts\nindex 123..456 100644\n--- a/src/main.ts\n+++ b/src/main.ts\n@@ -1,5 +1,5 @@\n- console.log("Hello");\n+ console.log("Hello World");'
+    })
+    diff: string;
+}
 class OnboardingResponseDto {
     @ApiProperty({
         example: 'https://github.com/labyrinth30/elasticsearch',
@@ -49,6 +56,22 @@ export class UsersController {
                 const botInstallUrl = `https://github.com/apps/one-wave-team3-bot`;
                 resolve({ forkUrl, botInstallUrl });
             }, 2000);
+        });
+    }
+
+    @Get('diff')
+    @ApiOperation({ summary: 'PR diff 확인 (Mock/Demo)' })
+    @ApiResponse({
+        status: 200,
+        description: '성공적으로 Diff를 가져옴',
+        type: PrDiffResponseDto
+    })
+    async checkDiff(): Promise<PrDiffResponseDto> {
+        // 시연용 고정값 사용 (labyrinth30/elasticsearch 기준)
+        return this.githubService.getPrDiff({
+            owner: 'labyrinth30',
+            repo: 'elasticsearch',
+            prNumber: 1 // 실제 존재하는 PR 번호 혹은 테스트용 번호
         });
     }
 }
