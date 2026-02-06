@@ -74,4 +74,5 @@ export class UsersController {
             prNumber: 1 // 실제 존재하는 PR 번호 혹은 테스트용 번호
         });
     }
+
 }
