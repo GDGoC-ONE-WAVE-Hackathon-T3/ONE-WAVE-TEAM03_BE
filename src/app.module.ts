@@ -25,9 +25,9 @@ import { CodeReviewModule } from './review/code-review.module';
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
         synchronize: true, // Dev only
         logging: true,
-        // ssl: {
-        //   rejectUnauthorized: false,
-        // },
+        ssl: {
+          rejectUnauthorized: false,
+        },
       }),
     }),
     UsersModule,
