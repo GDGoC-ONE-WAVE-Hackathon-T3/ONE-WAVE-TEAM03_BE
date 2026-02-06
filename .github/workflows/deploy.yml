@@ -42,6 +42,11 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
+      - name: ECR 토큰 가져오기
+        id: get-ecr-token
+        run: |
+          echo "password=$(aws ecr get-login-password --region ap-northeast-2)" >> $GITHUB_OUTPUT
+
       - name: Docker 이미지 생성 (Prod 타겟 지정)
         # [수정 1] --target prod 옵션 추가: 배포용 가벼운 이미지만 빌드
         run: docker build --target prod -t one-wave-server .
@@ -56,8 +61,8 @@ jobs:
         env:
           ENV_CONTENT: ${{ secrets.ENV }}
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_USERNAME: ${{ steps.login-ecr.outputs.username }}
-          ECR_PASSWORD: ${{ steps.login-ecr.outputs.password }}
+          ECR_USERNAME: AWS
+          ECR_PASSWORD: ${{ steps.get-ecr-token.outputs.password }}
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
