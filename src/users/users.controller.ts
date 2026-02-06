@@ -1,4 +1,4 @@
-import { Controller, Get, Post } from '@nestjs/common';
+import { Controller, Get } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiProperty } from '@nestjs/swagger';
 import { UsersService } from './services/users.service';
 import { GithubService } from '../github/github.service';
@@ -38,7 +38,7 @@ export class UsersController {
         return this.githubService.getLatestPrStatus();
     }
 
-    @Post('onboarding')
+    @Get('onboarding')
     @ApiOperation({ summary: '온보딩' })
     @ApiResponse({ status: 200, type: OnboardingResponseDto })
     async onboarding(): Promise<{ forkUrl: string; botInstallUrl: string }> {

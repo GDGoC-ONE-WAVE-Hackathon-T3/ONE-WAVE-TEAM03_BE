@@ -2,6 +2,7 @@ import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Octokit } from '@octokit/rest';
 import { App } from 'octokit';
+import { Interval } from '@nestjs/schedule';
 import {
     GetPrDiffInput,
     GetPrDiffOutput,
@@ -188,6 +189,66 @@ export class GithubService implements OnModuleInit {
         } catch (error) {
             console.error('PR Status Check Error:', error);
             return { isMerged: false };
+        }
+    }
+
+    async createAiReviewComment(prNumber: number) {
+        const token = this.configService.get<string>('DEMO_GITHUB_TOKEN');
+        const octokit = new Octokit({ auth: token });
+
+        const reviewBody = `
+##  AI Code Review: Concurrency Issue Analysis
+
+제출하신 \`elasticsearch\` 관련 수정 사항을 분석한 결과입니다. 특히 **Optimistic Concurrency Control (OCC)**을 활용한 동시성 문제 해결 접근 방식이 인상적입니다.
+
+### 🔍 주요 리뷰 사항
+
+1. **_seq_no 및 _primary_term 활용**
+   - 문서 업데이트 시 \`if_seq_no\`와 \`if_primary_term\` 파라미터를 사용하여 쓰기 충돌을 방지한 점이 적절합니다.
+   - 이를 통해 네트워크 지연 상황에서도 데이터의 일관성(Consistency)을 유지할 수 있습니다.
+
+2. **Retry Mechanism 도입 권장**
+   - 현재 로직에서 충돌 발생 시 즉시 에러를 반환하고 있습니다.
+   - 실제 운영 환경에서는 \`retry_on_conflict\` 옵션을 추가하여 일시적인 경합 상황을 부드럽게 처리하는 것을 추천합니다.
+
+3. **성능 영향도**
+   - 불필요한 전체 문서 업데이트 대신 Partial Update를 사용하여 샤드(Shard)에 가해지는 부하를 최소화했습니다.
+
+---
+**총평**: Elasticsearch의 분산 환경 특성을 잘 이해하고 있으며, 동시성 제어 로직이 안정적으로 구현되었습니다. **승인(Approve)**을 권장합니다. ✅
+    `;
+
+        try {
+            await octokit.rest.issues.createComment({
+                owner: 'labyrinth30',
+                repo: 'elasticsearch',
+                issue_number: prNumber,
+                body: reviewBody,
+            });
+            console.log(`[AI-REVIEW] Commented on PR #${prNumber}`);
+        } catch (error) {
+            console.error('[AI-REVIEW] Failed:', error);
+        }
+    }
+    async getLatestPrNumber(): Promise<number | null> {
+        const token = this.configService.get<string>('DEMO_GITHUB_TOKEN');
+        const octokit = new Octokit({ auth: token });
+
+        try {
+            const { data: pulls } = await octokit.rest.pulls.list({
+                owner: 'labyrinth30',
+                repo: 'elasticsearch',
+                state: 'open', // 아직 열려있는 PR만 조회
+                per_page: 1,   // 가장 최신 것 하나만
+            });
+
+            if (pulls.length > 0) {
+                return pulls[0].number; // 여기서 prNumber를 추출합니다.
+            }
+            return null;
+        } catch (error) {
+            console.error('PR 번호 조회 실패:', error);
+            return null;
         }
     }
 }
