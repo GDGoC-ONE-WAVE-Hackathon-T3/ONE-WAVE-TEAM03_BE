@@ -3,7 +3,6 @@ import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { UsersService } from './services/users.service';
 import { CreateUserDto } from './dto/request/create-user.dto';
 import { UserResponseDto } from './dto/response/user.response.dto';
-import { OnboardingDto } from './dto/request/onboarding.dto';
 import { Mission } from '../entities/mission.entity';
 
 @ApiTags('Users')
@@ -61,3 +60,4 @@ export class UsersController {
             }, 2000);
         });
     }
+}
