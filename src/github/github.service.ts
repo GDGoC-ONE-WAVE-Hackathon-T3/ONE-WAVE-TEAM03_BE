@@ -12,6 +12,7 @@ import {
     GetRepoInfoOutput,
 } from './dto/github.dto';
 
+
 @Injectable()
 export class GithubService implements OnModuleInit {
     private octokit: Octokit;
@@ -252,16 +253,16 @@ export class GithubService implements OnModuleInit {
             return null;
         }
     }
-    @Interval(5000) // 5초마다 실행
-    async autoBotReview() {
-        console.log('[BOT] Checking for new PRs...');
+    private processedPrs = new Set<number>();
 
+    @Interval(5000)
+    async autoBotReview() {
         const prNumber = await this.getLatestPrNumber();
 
-        if (prNumber) {
-            // 이미 댓글을 달았는지 확인하는 로직 (선택 사항이지만 중복 방지용)
-            // 시연 때는 단순히 최신 PR에 댓글을 한 번만 달도록 구성하세요.
-            await this.createAiReviewComment(prNumber);
-        }
+        // 이미 처리했거나 PR이 없으면 스킵
+        if (!prNumber || this.processedPrs.has(prNumber)) return;
+
+        await this.createAiReviewComment(prNumber);
+        this.processedPrs.add(prNumber); // 처리 완료 표시
     }
 }
