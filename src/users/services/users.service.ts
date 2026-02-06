@@ -38,6 +38,7 @@ export class UsersService {
 
     async findOne(params: { id: string }): Promise<{ user: User }> {
         const { id } = params;
+
         const user = await this.userRepository.findOne({ where: { id } });
         if (!user) {
             throw new BaseException(
