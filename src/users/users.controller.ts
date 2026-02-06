@@ -3,8 +3,12 @@ import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { UsersService } from './services/users.service';
 import { CreateUserDto } from './dto/request/create-user.dto';
 import { UserResponseDto } from './dto/response/user.response.dto';
-import { Mission } from '../entities/mission.entity';
 
+
+class OnboardingResponseDto {
+    forkUrl: string;
+    botInstallUrl: string
+};
 @ApiTags('Users')
 @Controller('users')
 export class UsersController {
@@ -41,9 +45,10 @@ export class UsersController {
         return new UserResponseDto(user);
     }
 
+
     @Post('onboarding')
-    @ApiOperation({ summary: '온보딩 (무조건 Backend/Java/Mock 모드)' })
-    @ApiResponse({ status: 200, type: Mission })
+    @ApiOperation({ summary: '온보딩' })
+    @ApiResponse({ status: 200, type: OnboardingResponseDto })
     async onboarding(): Promise<{ forkUrl: string; botInstallUrl: string }> {
         // 2초 후에 값 반환
         return new Promise<{ forkUrl: string; botInstallUrl: string }>((resolve) => {
