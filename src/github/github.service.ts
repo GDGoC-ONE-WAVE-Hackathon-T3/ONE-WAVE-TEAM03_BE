@@ -138,4 +138,25 @@ export class GithubService implements OnModuleInit {
             throw error;
         }
     }
+    async mockForkRepo(): Promise<string> {
+        const token = this.configService.get<string>('DEMO_GITHUB_TOKEN');
+        const octokit = new Octokit({ auth: token }); // 유저의 토큰으로 인스턴스 생성
+
+        try {
+            // 핵심: createFork 메서드 하나면 끝입니다.
+            const response = await octokit.rest.repos.createFork({
+                owner: 'elastic', // 원본 레포 주인 (예: 'elastic')
+                repo: 'elasticsearch',   // 원본 레포 이름 (예: 'elasticsearch')
+            });
+
+            // 포크된 레포지토리의 URL 반환
+            return response.data.html_url;
+
+        } catch (error) {
+            // 이미 포크된 경우에도 GitHub는 에러 대신 기존 레포 정보를 줄 때가 있지만,
+            // 명시적으로 에러가 나면 처리해줍니다.
+            console.error('Fork Error:', error);
+            throw new Error('GitHub Fork Failed');
+        }
+    }
 }
