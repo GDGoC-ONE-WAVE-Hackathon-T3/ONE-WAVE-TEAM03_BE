@@ -96,6 +96,37 @@ async function bootstrap() {
         // Fallback or skip
     }
 
+    // 3. Seed Elasticsearch Mission (Unconditional for Onboarding)
+    const esRepoName = 'elastic/elasticsearch';
+    console.log(`Fetching info for ${esRepoName} from GitHub...`);
+    try {
+        const repoInfoInput: GetRepoInfoInput = { repoName: esRepoName };
+        const repoInfo = await githubService.getRepoInfo(repoInfoInput);
+
+        const esMissionData = {
+            repoName: esRepoName,
+            title: 'Elasticsearch Open Source Contribution',
+            description: repoInfo.description || 'Contribute to the Elasticsearch repository.',
+            solutionDiff: 'diff --git a/server/src/main/java/org/elasticsearch/action/search/TransportSearchAction.java b/server/src/main/java/org/elasticsearch/action/search/TransportSearchAction.java...', // Dummy Diff
+            thumbnailUrl: repoInfo.thumbnailUrl,
+        };
+
+        const existingEsMission = await missionRepository.findOne({ where: { repoName: esRepoName } });
+        if (!existingEsMission) {
+            const mission = missionRepository.create(esMissionData);
+            await missionRepository.save(mission);
+            console.log(`Seeded mission: ${mission.repoName}`);
+        } else {
+            existingEsMission.thumbnailUrl = repoInfo.thumbnailUrl;
+            existingEsMission.description = repoInfo.description || existingEsMission.description;
+            await missionRepository.save(existingEsMission);
+            console.log(`Updated existing mission: ${esRepoName}`);
+        }
+
+    } catch (error) {
+        console.error('Failed to seed Elasticsearch mission:', error);
+    }
+
     await dataSource.destroy();
     console.log('Seeding complete.');
 }

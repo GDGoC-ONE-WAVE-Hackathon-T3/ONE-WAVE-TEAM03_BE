@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateUserDto {
@@ -12,4 +12,9 @@ export class CreateUserDto {
     @IsNotEmpty()
     @MinLength(3)
     username: string;
+
+    @ApiProperty({ example: 'ghp_...', description: 'GitHub Access Token', required: false })
+    @IsOptional()
+    @IsString()
+    githubAccessToken?: string;
 }

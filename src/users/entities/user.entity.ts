@@ -8,4 +8,13 @@ export class User extends BaseEntity {
 
     @Column()
     username: string;
+
+    @Column({ nullable: true })
+    stack: string; // 'Frontend' | 'Backend'
+
+    @Column({ nullable: true })
+    techStack: string; // 'Node.js' | 'Spring' | 'Python' | 'Java'
+
+    @Column({ nullable: true, select: false })
+    githubAccessToken: string;
 }

@@ -6,6 +6,9 @@ export const ERROR_CODES = {
     // Users
     USER_NOT_FOUND: 'USER_404_0',
     USER_ALREADY_EXISTS: 'USER_409_0',
+
+    // Resources
+    RESOURCE_NOT_FOUND: 'RESOURCE_404_0',
 } as const;
 
 export type ErrorCode = (typeof ERROR_CODES)[keyof typeof ERROR_CODES];

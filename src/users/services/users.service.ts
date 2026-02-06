@@ -1,14 +1,24 @@
-import { Injectable, HttpStatus } from '@nestjs/common';
+import { Injectable, HttpStatus, NotFoundException } from '@nestjs/common';
 import { User } from '../entities/user.entity';
 import { CreateUserDto } from '../dto/request/create-user.dto';
 import { BaseException } from '../../common/exception/base.exception';
 import { ERROR_CODES } from '../../common/constants/error-codes';
 import { UsersRepository } from '../users.repository';
+import { Mission } from '../../entities/mission.entity';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { OnboardingDto } from '../dto/request/onboarding.dto';
+import { GithubService } from '../../github/github.service';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class UsersService {
     constructor(
         private readonly userRepository: UsersRepository,
+        @InjectRepository(Mission)
+        private readonly missionRepository: Repository<Mission>,
+        private readonly githubService: GithubService,
+        private readonly configService: ConfigService,
     ) { }
 
     async create(params: { createUserDto: CreateUserDto }): Promise<{ user: User }> {
@@ -48,5 +58,48 @@ export class UsersService {
             );
         }
         return { user };
+    }
+
+    async onboarding(params: { id: string; onboardingDto: OnboardingDto }): Promise<{ mission: Mission; forkUrl?: string; botInstallUrl?: string }> {
+        const { id, onboardingDto } = params;
+
+        const user = await this.userRepository.findOne({
+            where: { id },
+            select: ['id', 'email', 'username', 'githubAccessToken', 'stack', 'techStack'], // Explicitly select githubAccessToken
+        });
+        if (!user) {
+            throw new BaseException(
+                ERROR_CODES.USER_NOT_FOUND,
+                '사용자를 찾을 수 없습니다.',
+                HttpStatus.NOT_FOUND,
+            );
+        }
+
+        user.stack = onboardingDto.stack;
+        user.techStack = onboardingDto.techStack;
+        await this.userRepository.save(user);
+
+        // Always return the specific elasticsearch mission
+        const mission = await this.missionRepository.findOne({
+            where: { repoName: 'elastic/elasticsearch' },
+        });
+
+        if (!mission) {
+            throw new NotFoundException('미션을 찾을 수 없습니다.');
+        }
+
+        let forkUrl: string | undefined;
+        if (user.githubAccessToken) {
+            try {
+                forkUrl = await this.githubService.forkRepo(user.githubAccessToken, mission.repoName);
+            } catch (error) {
+                console.error('Auto-fork failed:', error);
+                // Continue without failing the request, frontend can handle or retry
+            }
+        }
+
+        const botInstallUrl = `https://github.com/apps/one-wave-team3-bot`;
+
+        return { mission, forkUrl, botInstallUrl };
     }
 }

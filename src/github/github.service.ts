@@ -118,4 +118,24 @@ export class GithubService implements OnModuleInit {
             throw error;
         }
     }
+
+    async forkRepo(token: string, repoName: string): Promise<string> {
+        const [owner, repo] = repoName.split('/');
+        if (!owner || !repo) {
+            throw new Error(`Invalid repoName format: ${repoName}. Expected 'owner/repo'`);
+        }
+
+        const userOctokit = new Octokit({ auth: token });
+        try {
+            const { data } = await userOctokit.repos.createFork({
+                owner,
+                repo,
+            });
+            this.logger.log(`Forked ${repoName} successfully. URL: ${data.html_url}`);
+            return data.html_url;
+        } catch (error) {
+            this.logger.error(`Failed to fork ${repoName}`, error);
+            throw error;
+        }
+    }
 }
