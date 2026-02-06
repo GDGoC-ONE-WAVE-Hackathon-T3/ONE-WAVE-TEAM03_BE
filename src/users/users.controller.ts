@@ -51,15 +51,13 @@ export class UsersController {
     @Post(':id/onboarding')
     @ApiOperation({ summary: '온보딩 (무조건 Backend/Java/Mock 모드)' })
     @ApiResponse({ status: 200, type: Mission })
-    async onboarding(@Param('id') id: string, @Body() onboardingDto: OnboardingDto): Promise<{ mission: Mission; forkUrl?: string; botInstallUrl?: string }> {
-
-        // [시연용 강제 설정] 
-        // 유저가 무엇을 선택했든 상관없이 백엔드/자바로 고정합니다.
-        console.log(`[DEMO MODE] User selected ${onboardingDto.stack}/${onboardingDto.techStack} -> Forcing Backend/Java`);
-
-        onboardingDto.stack = 'Backend';
-        onboardingDto.techStack = 'Java';
-
-        return this.usersService.onboarding({ id, onboardingDto });
+    async onboarding(): Promise<{ forkUrl: string; botInstallUrl: string }> {
+        // 2초 후에 값 반환
+        return new Promise<{ forkUrl: string; botInstallUrl: string }>((resolve) => {
+            setTimeout(() => {
+                const forkUrl: string = 'https://github.com/labyrinth30/elasticsearch';
+                const botInstallUrl = `https://github.com/apps/one-wave-team3-bot`;
+                resolve({ forkUrl, botInstallUrl });
+            }, 2000);
+        });
     }
-}
