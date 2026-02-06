@@ -191,13 +191,14 @@ export class GithubService implements OnModuleInit {
             return { isMerged: false };
         }
     }
+    // src/github/github.service.ts
 
     async createAiReviewComment(prNumber: number) {
         const token = this.configService.get<string>('DEMO_GITHUB_TOKEN');
         const octokit = new Octokit({ auth: token });
 
         const reviewBody = `
-##  AI Code Review: Concurrency Issue Analysis
+## 🤖 AI Code Review: Concurrency Issue Analysis
 
 제출하신 \`elasticsearch\` 관련 수정 사항을 분석한 결과입니다. 특히 **Optimistic Concurrency Control (OCC)**을 활용한 동시성 문제 해결 접근 방식이 인상적입니다.
 
@@ -249,6 +250,18 @@ export class GithubService implements OnModuleInit {
         } catch (error) {
             console.error('PR 번호 조회 실패:', error);
             return null;
+        }
+    }
+    @Interval(5000) // 5초마다 실행
+    async autoBotReview() {
+        console.log('[BOT] Checking for new PRs...');
+
+        const prNumber = await this.getLatestPrNumber();
+
+        if (prNumber) {
+            // 이미 댓글을 달았는지 확인하는 로직 (선택 사항이지만 중복 방지용)
+            // 시연 때는 단순히 최신 PR에 댓글을 한 번만 달도록 구성하세요.
+            await this.createAiReviewComment(prNumber);
         }
     }
 }
