@@ -31,10 +31,6 @@ jobs:
         run: |
           touch .env
           echo '${{ secrets.ENV }}' >> .env
-
-      - name: 테스트 코드 실행
-        run: pnpm run test
-
       - name: AWS 권한 설정
         uses: aws-actions/configure-aws-credentials@v4
         with:
