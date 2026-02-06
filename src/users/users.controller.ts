@@ -41,13 +41,7 @@ export class UsersController {
         return new UserResponseDto(user);
     }
 
-    // @Post(':id/onboarding')
-    // @ApiOperation({ summary: '온보딩 (스택 선택 및 미션 배정)' })
-    // @ApiResponse({ status: 200, type: Mission })
-    // async onboarding(@Param('id') id: string, @Body() onboardingDto: OnboardingDto): Promise<{ mission: Mission; forkUrl?: string; botInstallUrl?: string }> {
-    //     return this.usersService.onboarding({ id, onboardingDto });
-    // }
-    @Post(':id/onboarding')
+    @Post('onboarding')
     @ApiOperation({ summary: '온보딩 (무조건 Backend/Java/Mock 모드)' })
     @ApiResponse({ status: 200, type: Mission })
     async onboarding(): Promise<{ forkUrl: string; botInstallUrl: string }> {
